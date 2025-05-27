@@ -2,12 +2,8 @@
 
 namespace NettChain;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-
 class NettChainClient
 {
-    private Client $client;
     private string $apiKey;
     private string $baseUrl;
     private ?string $globalPassword;
@@ -17,14 +13,6 @@ class NettChainClient
         $this->apiKey = $apiKey;
         $this->baseUrl = $baseUrl;
         $this->globalPassword = $globalPassword;
-        $this->client = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => [
-                'x-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ]
-        ]);
     }
 
     /**
@@ -47,12 +35,58 @@ class NettChainClient
     }
 
     /**
+     * Makes an HTTP request using cURL
+     * @param string $method HTTP method (GET, POST, etc.)
+     * @param string $endpoint API endpoint
+     * @param array $data Request data
+     * @return array
+     * @throws \Exception
+     */
+    private function makeRequest(string $method, string $endpoint, array $data = []): array
+    {
+        $url = $this->baseUrl . $endpoint;
+        
+        $ch = curl_init();
+        
+        $headers = [
+            'x-api-key: ' . $this->apiKey,
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ];
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if (curl_errno($ch)) {
+            throw new \Exception('cURL Error: ' . curl_error($ch));
+        }
+        
+        curl_close($ch);
+
+        if ($httpCode >= 400) {
+            throw new \Exception('HTTP Error: ' . $httpCode . ' Response: ' . $response);
+        }
+
+        return json_decode($response, true);
+    }
+
+    /**
      * Creates a new wallet
      * @param string $name Wallet name
      * @param string $blockchain Blockchain type (BTC, LTC, ETH, TRON, SOLANA, BSC, DOGE, MATIC)
      * @param string|null $password Password between 1 and 32 characters (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function createWallet(string $name, string $blockchain, ?string $password = null): array
     {
@@ -61,14 +95,11 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/wallet/create', [
-            'json' => [
-                'name' => $name,
-                'blockchain' => $blockchain,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/wallet/create', [
+            'name' => $name,
+            'blockchain' => $blockchain,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -80,7 +111,7 @@ class NettChainClient
      * @param int $gasLimit Gas limit for the transaction
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendEth(string $from, string $to, float $amount, int $gasPrice, int $gasLimit, ?string $password = null): array
     {
@@ -89,17 +120,14 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/eth/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'gasPrice' => $gasPrice,
-                'gasLimit' => $gasLimit,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/eth/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'gasPrice' => $gasPrice,
+            'gasLimit' => $gasLimit,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -111,7 +139,7 @@ class NettChainClient
      * @param int $gasLimit Gas limit for the transaction
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendErc20(string $from, string $to, float $amount, int $gasPrice, int $gasLimit, ?string $password = null): array
     {
@@ -120,17 +148,14 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/eth/erc20/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'gasPrice' => $gasPrice,
-                'gasLimit' => $gasLimit,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/eth/erc20/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'gasPrice' => $gasPrice,
+            'gasLimit' => $gasLimit,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -140,7 +165,7 @@ class NettChainClient
      * @param float $amount Amount to send
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendTron(string $from, string $to, float $amount, ?string $password = null): array
     {
@@ -149,15 +174,12 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/tron/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/tron/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -168,7 +190,7 @@ class NettChainClient
      * @param string $tokenId TRC20 token ID
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendTrc20(string $from, string $to, float $amount, string $tokenId, ?string $password = null): array
     {
@@ -177,16 +199,13 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/tron/trc20/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'token_id' => $tokenId,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/tron/trc20/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'token_id' => $tokenId,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -196,7 +215,7 @@ class NettChainClient
      * @param float $amount Amount to send
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendSolana(string $from, string $to, float $amount, ?string $password = null): array
     {
@@ -205,15 +224,12 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/solana/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/solana/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -225,7 +241,7 @@ class NettChainClient
      * @param float $fee Transaction fee
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendDoge(string $from, string $to, float $amount, string $addressReturn, float $fee, ?string $password = null): array
     {
@@ -234,17 +250,14 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/doge/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'address_return' => $addressReturn,
-                'fee' => $fee,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/doge/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'address_return' => $addressReturn,
+            'fee' => $fee,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -254,7 +267,7 @@ class NettChainClient
      * @param float $amount Amount to send
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendRipple(string $from, string $to, float $amount, ?string $password = null): array
     {
@@ -263,15 +276,12 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/xrp/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/xrp/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -281,7 +291,7 @@ class NettChainClient
      * @param float $amount Amount to send
      * @param string|null $password Password (optional if set globally)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendAvax(string $from, string $to, float $amount, ?string $password = null): array
     {
@@ -290,74 +300,66 @@ class NettChainClient
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        $response = $this->client->post('/avalanche/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount,
-                'password' => $password
-            ]
+        return $this->makeRequest('POST', '/avalanche/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'password' => $password
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
      * Gets all user wallets
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getAllWallets(): array
     {
-        $response = $this->client->get('/wallet/get');
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', '/wallet/get');
     }
 
     /**
      * Gets a specific wallet by address
      * @param string $address Wallet address
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getWalletByAddress(string $address): array
     {
-        $response = $this->client->get("/wallet/find/{$address}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/wallet/find/{$address}");
     }
 
     /**
      * Gets a specific wallet by name
      * @param string $name Wallet name
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getWalletByName(string $name): array
     {
-        $response = $this->client->get("/wallet/findBy/{$name}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/wallet/findBy/{$name}");
     }
 
     /**
      * Gets Dogecoin UTXOs
      * @param string $address Dogecoin address
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getDogeUtxos(string $address): array
     {
-        $response = $this->client->get("/doge/utxos/{$address}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/doge/utxos/{$address}");
     }
 
     /**
      * Gets current price of a cryptocurrency
      * @param string $symbol Cryptocurrency symbol (BTC, ETH, etc.)
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getCoinPrice(string $symbol): array
     {
-        $response = $this->client->get("/price/{$symbol}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/price/{$symbol}");
     }
 
     /**
@@ -365,36 +367,33 @@ class NettChainClient
      * @param string $address Address to validate
      * @param string $blockchain Blockchain type
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function validateAddress(string $address, string $blockchain): array
     {
-        $response = $this->client->get("/validate/{$blockchain}/{$address}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/validate/{$blockchain}/{$address}");
     }
 
     /**
      * Obtiene el balance de una dirección
      * @param string $address Dirección de la wallet
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getBalance(string $address): array
     {
-        $response = $this->client->get("/balance/{$address}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/balance/{$address}");
     }
 
     /**
      * Obtiene el historial de transacciones de una dirección
      * @param string $address Dirección de la wallet
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getTransactionHistory(string $address): array
     {
-        $response = $this->client->get("/transactions/{$address}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/transactions/{$address}");
     }
 
     /**
@@ -403,41 +402,36 @@ class NettChainClient
      * @param string $to Dirección de destino
      * @param float $amount Cantidad a enviar
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function sendTransaction(string $from, string $to, float $amount): array
     {
-        $response = $this->client->post('/send', [
-            'json' => [
-                'from' => $from,
-                'to' => $to,
-                'amount' => $amount
-            ]
+        return $this->makeRequest('POST', '/send', [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
      * Obtiene información de un bloque
      * @param string $blockHash Hash del bloque
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getBlockInfo(string $blockHash): array
     {
-        $response = $this->client->get("/block/{$blockHash}");
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', "/block/{$blockHash}");
     }
 
     /**
      * Obtiene el estado actual de la red
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function getNetworkStatus(): array
     {
-        $response = $this->client->get('/network/status');
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->makeRequest('GET', '/network/status');
     }
 
     /**
@@ -448,35 +442,29 @@ class NettChainClient
      * @param string $address Wallet address
      * @param string $encryptedKey Encrypted private key
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function importWallet(string $name, string $blockchain, string $network, string $address, string $encryptedKey): array
     {
-        $response = $this->client->post('/wallet/import', [
-            'json' => [
-                'name' => $name,
-                'blockchain' => $blockchain,
-                'network' => $network,
-                'address' => $address,
-                'encrypted_key' => $encryptedKey
-            ]
+        return $this->makeRequest('POST', '/wallet/import', [
+            'name' => $name,
+            'blockchain' => $blockchain,
+            'network' => $network,
+            'address' => $address,
+            'encrypted_key' => $encryptedKey
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
      * Exports a wallet's information
      * @param string $address Wallet address
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function exportWallet(string $address): array
     {
-        $response = $this->client->post('/wallet/export', [
-            'json' => [
-                'address' => $address
-            ]
+        return $this->makeRequest('POST', '/wallet/export', [
+            'address' => $address
         ]);
-        return json_decode($response->getBody()->getContents(), true);
     }
 } 
