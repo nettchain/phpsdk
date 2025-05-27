@@ -1,12 +1,11 @@
 {
-    "name": "nettchain/phpsdk",
-    "description": "PHP SDK for NettChain API",
+    "name": "nettchain/php-sdk",
+    "description": "SDK de PHP para la API de NettChain",
     "type": "library",
     "require": {
         "php": ">=7.4",
-        "guzzlehttp/guzzle": "^7.0",
         "ext-json": "*",
-        "simplito/elliptic-php": "^1.0"
+         "ext-curl": "*"
     },
     "autoload": {
         "psr-4": {
