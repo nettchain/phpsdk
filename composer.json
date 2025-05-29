@@ -5,7 +5,8 @@
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
-         "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-openssl": "*"
     },
     "autoload": {
         "psr-4": {

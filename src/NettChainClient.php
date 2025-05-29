@@ -134,27 +134,22 @@ class NettChainClient
      * Sends ERC20 token
      * @param string $from Source address
      * @param string $to Destination address
-     * @param float $amount Amount to send
+     * @param int $amount Amount to send
+     * @param string $contractAddress Contract address of the token
      * @param int $gasPrice Gas price in wei
      * @param int $gasLimit Gas limit for the transaction
-     * @param string|null $password Password (optional if set globally)
      * @return array
      * @throws \Exception
      */
-    public function sendErc20(string $from, string $to, float $amount, int $gasPrice, int $gasLimit, ?string $password = null): array
+    public function sendErc20(string $from, string $to, int $amount, string $contractAddress, int $gasPrice, int $gasLimit): array
     {
-        $password = $this->getPassword($password);
-        if ($password === null) {
-            throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
-        }
-
         return $this->makeRequest('POST', '/eth/erc20/send', [
             'from' => $from,
             'to' => $to,
             'amount' => $amount,
-            'gasPrice' => $gasPrice,
-            'gasLimit' => $gasLimit,
-            'password' => $password
+            'contract_address' => $contractAddress,
+            'gasprice' => $gasPrice,
+            'gaslimit' => $gasLimit
         ]);
     }
 
@@ -186,28 +181,29 @@ class NettChainClient
      * Sends TRC20 token
      * @param string $from Source address
      * @param string $to Destination address
-     * @param float $amount Amount to send
-     * @param string $tokenId TRC20 token ID
+     * @param float $amount Amount to send (minimum 0.000001)
+     * @param string $contractAddress Contract address of the token
      * @param string|null $password Password (optional if set globally)
      * @return array
      * @throws \Exception
      */
-    public function sendTrc20(string $from, string $to, float $amount, string $tokenId, ?string $password = null): array
+    public function sendTrc20(string $from, string $to, float $amount, string $contractAddress, ?string $password = null): array
     {
         $password = $this->getPassword($password);
         if ($password === null) {
             throw new \InvalidArgumentException('Password is required. Set it globally or in the operation.');
         }
 
-        return $this->makeRequest('POST', '/tron/trc20/send', [
+        return $this->makeRequest('POST', '/trc20/send', [
             'from' => $from,
             'to' => $to,
             'amount' => $amount,
-            'token_id' => $tokenId,
+            'contract_address' => $contractAddress,
             'password' => $password
         ]);
     }
 
+    
     /**
      * Sends Solana (SOL)
      * @param string $from Source address

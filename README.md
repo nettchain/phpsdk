@@ -73,12 +73,12 @@ $transaction = $client->sendEth(
 
 // Send ERC20 token
 $transaction = $client->sendErc20(
-    'source-address',
-    'destination-address',
-    1.5,
-    20000000000, // gasPrice in wei
-    21000,       // gasLimit
-    'password'   // optional if set globally
+    'source-address',    // from address
+    'destination-address', // to address
+    1000,               // amount
+    'token-contract-address', // contract address
+    20000000000,        // gasprice
+    21000               // gaslimit
 );
 
 // Send Tron (TRX)
@@ -90,10 +90,11 @@ $transaction = $client->sendTron(
 
 // Send TRC20 token
 $transaction = $client->sendTrc20(
-    'source-address',
-    'destination-address',
-    1.5,
-    'token-id'
+    'source-address',    // from address
+    'destination-address', // to address
+    0.000001,           // amount (minimum 0.000001)
+    'token-contract-address', // contract address
+    'password'          // optional if set globally
 );
 
 // Send Solana (SOL)
@@ -166,10 +167,10 @@ If no password is provided (neither global nor specific), the client will throw 
 - `exportWallet(string $address)`: Exports a wallet's information
 
 ### Cryptocurrency Operations
-- `sendEth(string $from, string $to, float $amount, int $gasPrice, int $gasLimit, ?string $password = null)`: Sends Ethereum (ETH)
-- `sendErc20(string $from, string $to, float $amount, int $gasPrice, int $gasLimit, ?string $password = null)`: Sends ERC20 token
-- `sendTron(string $from, string $to, float $amount, ?string $password = null)`: Sends Tron (TRX)
-- `sendTrc20(string $from, string $to, float $amount, string $tokenId, ?string $password = null)`: Sends TRC20 token
+- `sendEth(string $from, string $to, float $amount, int $gasPrice, int $gasLimit)`: Sends Ethereum (ETH)
+- `sendErc20(string $from, string $to, int $amount, string $contractAddress, int $gasPrice, int $gasLimit)`: Sends ERC20 token
+- `sendTron(string $from, string $to, float $amount)`: Sends Tron (TRX)
+- `sendTrc20(string $from, string $to, float $amount, string $contractAddress, ?string $password = null)`: Sends TRC20 token
 - `sendSolana(string $from, string $to, float $amount, ?string $password = null)`: Sends Solana (SOL)
 - `sendDoge(string $from, string $to, float $amount, string $addressReturn, float $fee, ?string $password = null)`: Sends Dogecoin
 - `sendRipple(string $from, string $to, float $amount, ?string $password = null)`: Sends Ripple (XRP)
@@ -180,14 +181,37 @@ If no password is provided (neither global nor specific), the client will throw 
 - `validateAddress(string $address, string $blockchain)`: Validates a blockchain address
 - `getDogeUtxos(string $address)`: Gets Dogecoin UTXOs
 
+### Encryption
+The SDK provides encryption capabilities for secure data handling:
+
+```php
+// Encrypt data
+$encryptedData = $client->encryption->encrypt('sensitive-data', 'encryption-password');
+
+// Decrypt data
+$decryptedData = $client->encryption->decrypt($encryptedData, 'encryption-password');
+```
+
+The encryption method uses AES-256-GCM for secure encryption and includes:
+- Automatic IV (Initialization Vector) generation
+- Authentication tag for data integrity
+- Secure key derivation using PBKDF2
+- Base64 encoding for encrypted output
+
+**Important Security Notes:**
+- All encryption/decryption operations are performed locally on your machine
+- Private keys are never sent to the server in plain text
+- When importing or exporting wallets, private keys are always encrypted before transmission
+- The encryption password is never stored or transmitted to the server
+
 ## Error Handling
 
-The client uses Guzzle for HTTP requests. All Guzzle exceptions are propagated, so you should handle `GuzzleException` in your code:
+The client uses cURL for HTTP requests. All cURL exceptions are propagated, so you should handle `CurlException` in your code:
 
 ```php
 try {
     $wallet = $client->createWallet('my-wallet', 'BTC');
-} catch (\GuzzleHttp\Exception\GuzzleException $e) {
+} catch (\CurlException $e) {
     // Handle API error
 } catch (\InvalidArgumentException $e) {
     // Handle missing password error
