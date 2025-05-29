@@ -7,12 +7,14 @@ class NettChainClient
     private string $apiKey;
     private string $baseUrl;
     private ?string $globalPassword;
+    public Encryption $encryption;
 
     public function __construct(string $apiKey, ?string $globalPassword = null, string $baseUrl = 'https://api.nettchain.com/v1')
     {
         $this->apiKey = $apiKey;
         $this->baseUrl = $baseUrl;
         $this->globalPassword = $globalPassword;
+        $this->encryption = new Encryption();
     }
 
     /**
