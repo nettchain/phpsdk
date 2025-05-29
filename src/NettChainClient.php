@@ -476,7 +476,7 @@ class NettChainClient
      */
     public function registerWebhook(string $address, string $blockchain, string $url): array
     {
-        return $this->makeRequest('POST', '/webhook/register', [
+        return $this->makeRequest('POST', '/webhooks/create', [
             'address' => $address,
             'blockchain' => $blockchain,
             'url' => $url
@@ -490,7 +490,7 @@ class NettChainClient
      */
     public function getWebhooks(): array
     {
-        return $this->makeRequest('GET', '/webhook/list');
+        return $this->makeRequest('GET', '/webhooks/get');
     }
 
     /**
@@ -501,6 +501,6 @@ class NettChainClient
      */
     public function deleteWebhook(string $webhookId): array
     {
-        return $this->makeRequest('DELETE', "/webhook/delete/{$webhookId}");
+        return $this->makeRequest('DELETE', "/webhooks/{$webhookId}");
     }
 } 

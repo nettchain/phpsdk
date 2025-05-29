@@ -243,6 +243,9 @@ $webhook = $client->registerWebhook(
 // Get all registered webhooks
 $webhooks = $client->getWebhooks();
 
+//find a webhook
+$client->findWebhook('webhook-id');
+
 // Delete a webhook
 $client->deleteWebhook('webhook-id');
 ```
