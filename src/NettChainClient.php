@@ -463,4 +463,42 @@ class NettChainClient
             'address' => $address
         ]);
     }
+
+    /**
+     * Registers a new webhook
+     * @param string $address Blockchain address to monitor
+     * @param string $blockchain Blockchain type (Ethereum, Bitcoin, etc.)
+     * @param string $url Callback URL for notifications
+     * @return array
+     * @throws \Exception
+     */
+    public function registerWebhook(string $address, string $blockchain, string $url): array
+    {
+        return $this->makeRequest('POST', '/webhook/register', [
+            'address' => $address,
+            'blockchain' => $blockchain,
+            'url' => $url
+        ]);
+    }
+
+    /**
+     * Gets all registered webhooks
+     * @return array
+     * @throws \Exception
+     */
+    public function getWebhooks(): array
+    {
+        return $this->makeRequest('GET', '/webhook/list');
+    }
+
+    /**
+     * Deletes a webhook
+     * @param string $webhookId ID of the webhook to delete
+     * @return array
+     * @throws \Exception
+     */
+    public function deleteWebhook(string $webhookId): array
+    {
+        return $this->makeRequest('DELETE', "/webhook/delete/{$webhookId}");
+    }
 } 

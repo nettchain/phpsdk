@@ -218,6 +218,48 @@ try {
 }
 ```
 
+## Webhooks
+
+The SDK provides webhook functionality to receive real-time notifications about blockchain events. Webhooks are supported for the following blockchains:
+- Ethereum
+- Bitcoin
+- Dogecoin
+- Ripple
+- Binance Smart Chain (BSC)
+- Polygon (MATIC)
+- Tron (TRX)
+- Solana (SOL)
+
+### Webhook Management
+
+```php
+// Register a new webhook
+$webhook = $client->registerWebhook(
+    '0x123456789abcdef',  // blockchain address to monitor
+    'Ethereum',           // blockchain type
+    'https://your-callback-url.com/webhook'  // callback URL
+);
+
+// Get all registered webhooks
+$webhooks = $client->getWebhooks();
+
+// Delete a webhook
+$client->deleteWebhook('webhook-id');
+```
+
+### Webhook Features
+- Register new webhooks to receive notifications at a specific URL
+- Query all webhooks created by the authenticated user
+- Delete registered webhooks when no longer needed
+- Automatic disabling of expired webhooks
+
+### Webhook Events
+Webhooks will notify you about:
+- Transaction confirmations
+- Balance changes
+- Token transfers
+- Other blockchain-specific events
+
 ## Supported Blockchains
 
 - Bitcoin (BTC)
