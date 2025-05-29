@@ -503,4 +503,16 @@ class NettChainClient
     {
         return $this->makeRequest('DELETE', "/webhooks/{$webhookId}");
     }
+
+
+      /**
+     * find a webhook
+     * @param string $webhookId ID of the webhook to find
+     * @return array
+     * @throws \Exception
+     */
+    public function findWebhook(string $webhookId): array
+    {
+        return $this->makeRequest('GET', "/webhooks/find/{$webhookId}");
+    }   
 } 
