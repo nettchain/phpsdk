@@ -2,6 +2,7 @@
     "name": "nettchain/php-sdk",
     "description": "SDK de PHP para la API de NettChain",
     "type": "library",
+    "license": "MIT",
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
