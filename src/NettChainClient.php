@@ -351,13 +351,26 @@ class NettChainClient
 
     /**
      * Gets current price of a cryptocurrency
-     * @param string $symbol Cryptocurrency symbol (BTC, ETH, etc.)
+     * @param string $coin Cryptocurrency symbol (BTC, ETH, etc.)
+     * @param string $currency Currency code (USD, EUR, etc.)
      * @return array
      * @throws \Exception
      */
-    public function getCoinPrice(string $symbol): array
+    public function getCoinPrice(string $coin, string $currency): array
     {
-        return $this->makeRequest('GET', "/price/{$symbol}");
+        return $this->makeRequest('GET', "/get_price?coin={$coin}&currency={$currency}");
+    }
+
+    /**
+     * Gets current prices of multiple cryptocurrencies
+     * @param string $coins Comma-separated list of cryptocurrency symbols (BTC,ETH,LTC)
+     * @param string $currencies Comma-separated list of currency codes (USD,EUR)
+     * @return array
+     * @throws \Exception
+     */
+    public function getBatchPrices(string $coins, string $currencies): array
+    {
+        return $this->makeRequest('GET', "/batch_prices?coin={$coins}&currency={$currencies}");
     }
 
     /**

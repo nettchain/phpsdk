@@ -140,7 +140,10 @@ $wallet = $client->getWalletByName('wallet-name');
 $utxos = $client->getDogeUtxos('doge-address');
 
 // Get cryptocurrency price
-$price = $client->getCoinPrice('BTC');
+$price = $client->getCoinPrice('BTC', 'USD');
+
+// Get batch prices for multiple cryptocurrencies
+$prices = $client->getBatchPrices('BTC,ETH,LTC', 'USD,EUR');
 
 // Validate blockchain address
 $validation = $client->validateAddress('address', 'BTC');
@@ -177,7 +180,8 @@ If no password is provided (neither global nor specific), the client will throw 
 - `sendAvax(string $from, string $to, float $amount, ?string $password = null)`: Sends AVAX (Avalanche)
 
 ### Utilities
-- `getCoinPrice(string $symbol)`: Gets current price of a cryptocurrency
+- `getCoinPrice(string $coin, string $currency)`: Gets current price of a cryptocurrency
+- `getBatchPrices(string $coins, string $currencies)`: Gets current prices of multiple cryptocurrencies
 - `validateAddress(string $address, string $blockchain)`: Validates a blockchain address
 - `getDogeUtxos(string $address)`: Gets Dogecoin UTXOs
 
